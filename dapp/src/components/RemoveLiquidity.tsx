@@ -3,46 +3,39 @@ import { Contract, ethers } from "ethers";
 import { JsonRpcSigner } from "ethers";
 import { Dispatch, FormEvent, SetStateAction, useState } from "react";
 
-interface AddLiquidityProps {
+interface RemoveLiquidityProps {
   signer: JsonRpcSigner | null;
   liquidityPoolContract: Contract | null;
   toggleCurrent: boolean;
   setToggleCurrent: Dispatch<SetStateAction<boolean>>;
 }
 
-function AddLiquidity({
+function RemoveLiquidity({
   signer,
   liquidityPoolContract,
   toggleCurrent,
   setToggleCurrent,
-}: AddLiquidityProps) {
-  const [tokenAAmount, setTokenAAmount] = useState("0");
-  const [tokenBAmount, setTokenBAmount] = useState("0");
+}: RemoveLiquidityProps) {
+  const [liquidityAmount, setLiquidityAmount] = useState("0");
   const [isLoading, setIsLoading] = useState(false);
 
-  const addLiquidity = async (e: FormEvent<HTMLFormElement>) => {
+  const removeLiquidity = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (
-      !signer ||
-      !liquidityPoolContract ||
-      isNaN(Number(tokenAAmount)) ||
-      isNaN(Number(tokenBAmount))
-    ) {
+    if (!signer || !liquidityPoolContract || isNaN(Number(liquidityAmount))) {
       return;
     }
 
     try {
       setIsLoading(true);
 
-      const tx = await liquidityPoolContract.addLiquidity(
-        ethers.parseUnits(tokenAAmount, 18),
-        ethers.parseUnits(tokenBAmount, 18)
+      const tx = await liquidityPoolContract.removeLiquidity(
+        ethers.parseUnits(liquidityAmount, 18)
       );
 
       await tx.wait();
 
-      setToggleCurrent(toggleCurrent);
+      setToggleCurrent(!toggleCurrent);
     } catch (error) {
       console.error(error);
     } finally {
@@ -51,17 +44,11 @@ function AddLiquidity({
   };
 
   return (
-    <form onSubmit={addLiquidity}>
+    <form onSubmit={removeLiquidity}>
       <Flex gap={4}>
         <Input
-          value={tokenAAmount}
-          onChange={(e) => setTokenAAmount(e.target.value)}
-          disabled={isLoading}
-          colorPalette="green"
-        />
-        <Input
-          value={tokenBAmount}
-          onChange={(e) => setTokenBAmount(e.target.value)}
+          value={liquidityAmount}
+          onChange={(e) => setLiquidityAmount(e.target.value)}
           disabled={isLoading}
           colorPalette="green"
         />
@@ -71,11 +58,11 @@ function AddLiquidity({
           loadingText="로딩중"
           colorPalette="green"
         >
-          LP 토큰 발행 (유동성 추가)
+          LP 토큰 정산 (유동성 제거)
         </Button>
       </Flex>
     </form>
   );
 }
 
-export default AddLiquidity;
+export default RemoveLiquidity;

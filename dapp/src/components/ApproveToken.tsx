@@ -43,11 +43,10 @@ function ApproveToken({ tokenName, signer, tokenContract }: ApproveTokenProps) {
 
     try {
       setApproveLoading(true);
-      const decimals = await tokenContract.decimals();
 
       const tx = await tokenContract.approve(
         import.meta.env.VITE_LIQUIDITY_POOL_ADDRESS,
-        ethers.parseUnits(approveAmount, decimals)
+        ethers.parseUnits(approveAmount, 18)
       );
 
       await tx.wait();
